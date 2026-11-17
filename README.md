@@ -34,15 +34,13 @@
    - Wymaga `imagemagick` i `webp` (cwebp, webpmux).
 4. Wygeneruj alt texty przez AI (pkt 6) i wklej je do `altText.ts` (pkt 5).
 5. Tylko dla start: jeśli ludzie nie są na środku kadru, dodaj wpis do `slideFocus.ts`, np. `'03-opis.webp': '30% 50%'`. Pierwsza wartość to poziome położenie: 0% = lewo, 100% = prawo.
-6. Sprawdź lokalnie: `npm run dev` (strona Start, Portfolio, Galeria, sesja, linki na Start i O mnie), potem `npm run build`, który musi przejść.
-7. Commit i push. Repo assets: merge do `main` uruchamia auto deploy. Internal: push do `master`.
+
 
 ## 3. Usuwanie zdjęć
 1. Usuń plik z `full/` (lub `start/`) **i** jego miniaturę z `thumbs/` lub `thumbial/`.
 2. Usuń wpis z `altText.ts`. Dla start usuń też wpis z `slideFocus.ts`, jeśli istnieje.
 3. Luki w numeracji nie przeszkadzają. Przenumerowanie jest opcjonalne, ale wtedy trzeba zmienić też klucze w `altText.ts` i `slideFocus.ts`.
 4. Usunięcie całej sesji: skasuj folder `gallery/<folder>/` i wszystkie jego wpisy `gallery/<folder>/...` w `altText.ts`. Linki, strona sesji i sitemap znikną same.
-5. Uruchom `npm run build`, potem commit i push.
 
 ## 4. Zmiana zdjęć
 - **Podmiana zdjęcia przy tej samej nazwie**: usuń stare `.webp` z `full/` i miniatury, wrzuć nowy oryginał pod tą samą nazwą do obu katalogów i uruchom `convert-images.sh`.
@@ -136,6 +134,5 @@ Ta komenda podmienia prefiks, ustawia 4 spacje i dopisuje brakujący przecinek.
 ## 7. Kontrola po wklejeniu
 - Liczba nowych wpisów w `altText.ts` = liczba nowych plików w `full/` (dla start: w `start/`).
 - Klucz ma się zgadzać z nazwą pliku znak w znak, z prefiksem i rozszerzeniem `.webp`.
-- `npm run build` musi przejść. W devtools sprawdź, czy przy żadnym zdjęciu nie ma ogólnego alt „| zdjęcie N”.
-- Commit i push: repo assets (merge do `main`) albo to repo (push do `master`) przy `internal`.
+- Wrzuć wszyko do github.
 
