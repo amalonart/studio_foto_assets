@@ -65,17 +65,16 @@
    - galeria: `gallery/<folder>/thumbial/`
    - portfolio: `portfolio/thumbs/`, najlepiej tylko nowe pliki
    - start: nowe pliki z `start/`, bo slajdy nie mają miniatur
-2. AI widzi tylko obrazy, a nie nazwę folderu. Dlatego **prefiks wpisujesz ręcznie** w 1. linii promptu (`PREFIKS = ...`) według tabeli:
+2. AI widzi tylko obrazy, a nie nazwę folderu. Dlatego **prefiks wpisujesz ręcznie** w 1. linii promptu (`PREFIKS = ...`). Przykłady:
 
    | Wysyłany katalog miniatur | 1. linia promptu | Przykładowy klucz |
    | --- | --- | --- |
    | `start/` | `PREFIKS = start/` | `start/03-para-lezaca-w-trawie-ujecie-z-drona.webp` |
    | `portfolio/thumbs/` | `PREFIKS = portfolio/` | `portfolio/106-para-na-plazy-ujecie-z-drona.webp` |
-   | `gallery/1_sesja_kobieca_spotkanie_z_julia/thumbial/` | `PREFIKS = gallery/1_sesja_kobieca_spotkanie_z_julia/` | `gallery/1_sesja_kobieca_spotkanie_z_julia/05-julia-na-schodach.webp` |
-   | `gallery/2_spotkanie_z_artystka_paula_smyk/thumbial/` | `PREFIKS = gallery/2_spotkanie_z_artystka_paula_smyk/` | `gallery/2_spotkanie_z_artystka_paula_smyk/01-sylwetka-pauli-smyk-na-tle-obrazu-z-kobieca-twarza-i-zlotem.webp` |
-   | `gallery/3_sesja_rodzinno_brzuszkowa/thumbial/` | `PREFIKS = gallery/3_sesja_rodzinno_brzuszkowa/` | `gallery/3_sesja_rodzinno_brzuszkowa/07-rodzice-z-corka-na-lace.webp` |
-   | `gallery/4_sesja_slubna_lazienki_krolewskie/thumbial/` | `PREFIKS = gallery/4_sesja_slubna_lazienki_krolewskie/` | `gallery/4_sesja_slubna_lazienki_krolewskie/41-para-mloda-na-moscie.webp` |
-   | nowa sesja, np. `gallery/5_sesja_slubna_lukow/thumbial/` | `PREFIKS = gallery/5_sesja_slubna_lukow/` | `gallery/5_sesja_slubna_lukow/01-para-mloda-w-parku.webp` |
+   | `gallery/2_sesja_plenerowa_w_parku/thumbial/` | `PREFIKS = gallery/2_sesja_plenerowa_w_parku/` | `gallery/2_sesja_plenerowa_w_parku/01-kobieta-w-kapeluszu-na-tle-drzew.webp` |
+   | `gallery/4_sesja_slubna_w_palacu/thumbial/` | `PREFIKS = gallery/4_sesja_slubna_w_palacu/` | `gallery/4_sesja_slubna_w_palacu/41-para-mloda-na-moscie.webp` |
+   | `gallery/7_sesja_rodzinna_na_lace/thumbial/` | `PREFIKS = gallery/7_sesja_rodzinna_na_lace/` | `gallery/7_sesja_rodzinna_na_lace/07-rodzice-z-corka-na-lace.webp` |
+   | nowa sesja, np. `gallery/12_sesja_slubna_lukow/thumbial/` | `PREFIKS = gallery/12_sesja_slubna_lukow/` | `gallery/12_sesja_slubna_lukow/01-para-mloda-w-parku.webp` |
 
 3. Zasady prefiksu:
    - Wpisujesz go ze slashami `/`, z `/` na końcu.
@@ -91,9 +90,10 @@
 
 ### Prompt do AI (popraw tylko 1. linię)
 ```
-PREFIKS = gallery/2_spotkanie_z_artystka_paula_smyk/
+PREFIKS = gallery/2_sesja_plenerowa_w_parku/
 
-Jesteś asystentem SEO i dostępności dla strony fotografki ślubnej i portretowej. Generujesz teksty alternatywne (alt)
+Jesteś asystentem SEO i dostępności dla strony fotografki ślubnej i portretowej.
+Generujesz teksty alternatywne (alt)
 po polsku dla załączonych zdjęć.
 
 KLUCZ = PREFIKS (dokładnie jak w 1. linii) + nazwa pliku bez zmian, rozszerzenie .webp.
@@ -102,7 +102,7 @@ Pomiń pliki niebędące zdjęciami (.DS_Store, ._*, .md).
 ALT:
 - Opisz to, co widać: kto, co robi, gdzie/tło, ważny detal (światło, kolor, pora dnia).
 - Słowa z PREFIKSU i z nazwy pliku to podpowiedź; imiona i miejsca tylko stamtąd,
-  z polskimi znakami (paula smyk -> Paula Smyk, lazienki krolewskie -> Łazienki Królewskie).
+  z polskimi znakami (np. lazienki krolewskie -> Łazienki Królewskie, lukow -> Łuków).
 - Jedno zdanie, 6-14 słów, maks. 120 znaków, wielka litera, BEZ kropki na końcu.
 - Czarno-białe -> "Czarno-białe zdjęcie: ...". Dron -> ", ujęcie z drona".
 - Nie zaczynaj od "Zdjęcie przedstawia" / "Na zdjęciu".
@@ -116,8 +116,8 @@ FORMAT ODPOWIEDZI (ŚCISŁY):
 PRZYKŁADY GOTOWYCH LINII (różne prefiksy):
     'start/03-para-lezaca-w-trawie-ujecie-z-drona.webp': 'Para leżąca w zielonej trawie, ujęcie z drona',
     'portfolio/106-para-na-plazy-ujecie-z-drona.webp': 'Para leży na piaszczystej plaży nad morzem, ujęcie z drona',
-    'gallery/2_spotkanie_z_artystka_paula_smyk/01-sylwetka-pauli-smyk-na-tle-obrazu-z-kobieca-twarza-i-zlotem.webp': 'Sylwetka Pauli Smyk malującej kobiecą twarz ze złotym pasem na płótnie',
-    'gallery/4_sesja_slubna_lazienki_krolewskie/41-para-mloda-na-moscie.webp': 'Para młoda na kamiennym moście w Łazienkach Królewskich',
+    'gallery/2_sesja_plenerowa_w_parku/01-kobieta-w-kapeluszu-na-tle-drzew.webp': 'Kobieta w słomkowym kapeluszu na tle zielonych drzew w parku',
+    'gallery/4_sesja_slubna_w_palacu/41-para-mloda-na-moscie.webp': 'Para młoda na kamiennym moście w pałacowym parku',
 
 Zdjęcie nierozpoznane -> linia:
     // TODO 'pełny klucz': nie rozpoznano
@@ -129,7 +129,7 @@ KONTROLA: każdy klucz zaczyna się od PREFIKSU z 1. linii, żadna linia nie zaw
 ### Naprawa, gdy AI zwróci `<PREFIKS>` albo zły format
 Zapisz odpowiedź AI do pliku `ai.txt` i uruchom komendę z właściwym prefiksem:
 ```bash
-sed -E "s#<PREFIKS>#gallery/2_spotkanie_z_artystka_paula_smyk/#; s#^ *'#    '#; s#'\$#',#" ai.txt
+sed -E "s#<PREFIKS>#gallery/2_sesja_plenerowa_w_parku/#; s#^ *'#    '#; s#'\$#',#" ai.txt
 ```
 Ta komenda podmienia prefiks, ustawia 4 spacje i dopisuje brakujący przecinek.
 
