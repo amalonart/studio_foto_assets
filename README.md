@@ -29,11 +29,11 @@
      - W `overview.md`: linia 1 to `# Tytuł` (bez spacji na początku), linia 2 to jedno zdanie intro (~120-150 znaków), które służy też jako meta description. Cały plik jest widoczny na stronie.
 2. Nazw z aparatu **nie musisz zmieniać ręcznie**. Zrobi to GitHub po wrzuceniu pliku `name.md` (pkt 6 i 8).
    - Ręczna zmiana nazw według pkt 1 nadal działa. Wtedy w pkt 4 i 5 wklejasz wpisy ręcznie.
-3. Uruchom skrypt zmieniający rozmiar: `bash convert-images.sh` z katalogu głównego repo.
+3. Zmianę rozmiaru robi GitHub po wrzuceniu do `main` (skrypt `scripts/convert-images.sh`, pkt 8).
    - `full` i start: maks. 2048 px, q90. Miniatury: 800 px szerokości, q80. Wynik to WebP z metadanymi copyright.
-   - **Skrypt usuwa oryginały**, więc trzymaj kopie gdzie indziej.
-   - `DIRS` w skrypcie wskazują na `src/assets/...`. Dla external zmień je na `src/assets_external/...` albo na ścieżki w lokalnym klonie repo assets.
-   - Wymaga `imagemagick` i `webp` (cwebp, webpmux).
+   - Do miniatur możesz wrzucić te same pliki co do `full/`, także gotowe pełnowymiarowe `.webp`. WebP większe niż limit (miniatura > 800 px szerokości, `full`/start > 2048 px) są zmniejszane w miejscu. WebP w limicie nie są ruszane.
+   - **Skrypt usuwa oryginały** (jpg/png/heic) i zostawia tylko `.webp`. Oryginały zostają w historii git, ale lepiej trzymaj kopie gdzie indziej.
+   - Opcjonalnie lokalnie: `bash scripts/convert-images.sh` z katalogu głównego repo (domyślnie katalog `assets`, inny można podać jako argument). Wymaga `imagemagick` i `webp` (cwebp, webpmux).
 4. Wygeneruj przez AI plik `name.md` z nowymi nazwami i alt textami (pkt 6), zapisz go w katalogu prefiksu i wrzuć wszystko do github. GitHub zmieni nazwy i uzupełni `altText.ts` (pkt 8).
 5. Tylko dla start: każde nowe zdjęcie dostaje wpis w `slideFocus.ts` (domyślnie `'50% 50%'`). Jeśli ludzie nie są na środku kadru, dopisz w `name.md` 4. kolumnę, np. `30% 50%`, albo popraw wartość w `slideFocus.ts` później. Pierwsza wartość to poziome położenie: 0% = lewo, 100% = prawo.
 
@@ -45,8 +45,8 @@
 4. Usunięcie całej sesji: skasuj folder `gallery/<folder>/` i wszystkie jego wpisy `gallery/<folder>/...` w `altText.ts`. Linki, strona sesji i sitemap znikną same.
 
 ## 4. Zmiana zdjęć
-- **Podmiana zdjęcia przy tej samej nazwie**: usuń stare `.webp` z `full/` i miniatury, wrzuć nowy oryginał pod tą samą nazwą do obu katalogów i uruchom `convert-images.sh`.
-  - Skrypt nie nadpisuje istniejących WebP, dlatego najpierw trzeba je usunąć.
+- **Podmiana zdjęcia przy tej samej nazwie**: usuń stare `.webp` z `full/` i miniatury, wrzuć nowy oryginał pod tą samą nazwą do obu katalogów i wrzuć do github (konwersja w pkt 8).
+  - Skrypt nie nadpisuje istniejących WebP w limicie rozmiaru, dlatego najpierw trzeba je usunąć.
   - Jeśli treść zdjęcia się zmieniła, popraw alt.
 - **Zmiana kolejności**: zmień prefiks `NN` w `full/` i w miniaturach, potem zaktualizuj klucze w `altText.ts` (i `slideFocus.ts`).
 - **Zmiana nazwy pliku**: dodaj wiersz do `name.md` (pkt 8): `stara-nazwa.webp | nowa-nazwa.webp | Alt text`. Albo ręcznie: zmień nazwę w obu katalogach, a w `altText.ts` zmień klucz i w razie potrzeby wartość.
@@ -61,7 +61,7 @@
 - Brak wpisu oznacza ogólny alt typu „… | zdjęcie N”, co jest złe dla SEO.
 
 ## 6. Nazwy i alt texty przez AI → `name.md` (jeden katalog miniatur)
-1. Po konwersji wyślij do AI **jeden** katalog miniatur, tylko nowe pliki. Nazwy plików muszą zostać bez zmian (np. `IMG_1234.webp`).
+1. Wyślij do AI **jeden** katalog miniatur, tylko nowe pliki. Nazwy plików muszą zostać bez zmian (np. `IMG_1234.jpg` albo `IMG_1234.webp`, jeśli konwertowano lokalnie). Rozszerzenie w `name.md` musi zgadzać się z plikiem w repo.
    - galeria: `gallery/<folder>/thumbial/`
    - portfolio: `portfolio/thumbs/`
    - start: nowe pliki z `start/`, bo slajdy nie mają miniatur
@@ -144,5 +144,6 @@ KONTROLA: każdy wiersz ma dokładnie 2 znaki "|", nowe nazwy idą kolejno od ST
   3. w `altText.ts` dodaje lub podmienia wpis `prefiks + nowa nazwa` i usuwa wpis starej nazwy,
   4. dla start: w `slideFocus.ts` dodaje wpis (4. kolumna albo `50% 50%`); przy zmianie nazwy istniejącego slajdu zachowuje jego kadr,
   5. zmienia `name.md` na `name_<RRRRMMDD-GGMMSS>.md` (tylko `name.md` jest przetwarzany, stare pliki są pomijane),
-  6. robi commit „Apply name.md renames” i dopiero potem powiadamia repo FE.
+  6. uruchamia `scripts/convert-images.sh` (pkt 2.3): konwertuje oryginały do WebP i zmniejsza za duże WebP; błąd konwersji = brak powiadomienia FE,
+  7. robi commit „Apply name.md renames / resize images” (tylko gdy coś się zmieniło) i dopiero potem powiadamia repo FE.
 - Lokalny test przed wrzuceniem: `python3 scripts/apply_names.py assets` (zmienia pliki od razu).
