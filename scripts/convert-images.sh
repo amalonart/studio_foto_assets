@@ -7,10 +7,15 @@
 # !! Originals (jpg/png/...) in in-place directories are DELETED after a
 # !! successful conversion. Keep your exports elsewhere or commit to git first.
 #
-# Typical use: copy the same originals into full/ AND thumbs/, run the script.
+# Typical use: put originals into the MAIN folder of a portfolio / gallery session
+# (portfolio/, gallery/<N>_<session>/ — see STAGE_DIRS). Stage 1 converts them to
+# full-size WebP, copies each to full/ AND thumbial/ and deletes them from the main
+# folder (only images; .md and other files stay). Stage 2 then shrinks thumbial/
+# copies to thumbnail size (and converts anything put straight into the DIRS).
+# start/ has no subfolders: put originals straight into start/.
 # Re-running is safe: only files that are not WebP yet get converted, plus
-# WebP files larger than the target size (e.g. a full-size WebP copied into
-# thumbs/) — those are shrunk in place. WebP within the size limit is never
+# WebP files larger than the target size (e.g. a full-size WebP in thumbial/)
+# — those are shrunk in place. WebP within the size limit is never
 # re-encoded (that would only lose quality).
 
 set -uo pipefail
@@ -26,16 +31,20 @@ shopt -s nullglob nocaseglob extglob
 #               (gallery/*/full = the full/ folder of every session)
 #   OUTPUT DIR  leave empty = convert IN PLACE, original is replaced (normal use)
 #               optional: write to another folder instead, relative to SOURCE dir,
-#               originals kept — e.g. "thumb | portfolio/full | ../thumbs"
+#               originals kept — e.g. "thumb | portfolio/full | ../thumbial"
 #               makes thumbnails from the full-size folder
 #
 DIRS=(
   "full  | start              |"
   "full  | portfolio/full     |"
-  "thumb | portfolio/thumbs   |"
+  "thumb | portfolio/thumbial |"
   "full  | gallery/*/full     |"
   "thumb | gallery/*/thumbial |"
 )
+
+# Upload (main) folders: images here are converted to full size, copied to
+# <dir>/full/ and <dir>/thumbial/, then removed from <dir> (stage 1)
+STAGE_DIRS=(portfolio 'gallery/*')   # quoted: expanded later, inside ASSETS_DIR
 
 FULL_Q=90               # quality for full-size images (0-100)
 THUMB_Q=80              # quality for thumbnails (0-100)
@@ -98,6 +107,35 @@ encode() {
     && [ -s "$tmp2" ] && identify "$tmp2" >/dev/null 2>&1 \
     && mv -f "$tmp2" "$4" && rm -f "$tmp" || { rm -f "$tmp" "$tmp2"; return 1; }
 }
+
+# ---- stage 1: main-folder uploads -> full-size WebP -> copy to full/ + thumbial/ ----
+staged=0; stage_failed=0
+declare -A stage_seen   # dir/stem -> source, to catch name clashes (a.jpg + a.png)
+for dir in ${STAGE_DIRS[@]}; do        # unquoted on purpose: expands the wildcards
+  [ -d "$dir" ] || continue
+  for f in "$dir"/$SRC "$dir"/*.webp; do
+    [ -f "$f" ] || continue               # e.g. a .webp already removed with its original
+    stem=$(basename "${f%.*}"); web="$dir/$stem.webp"
+    if [[ -n "${stage_seen[$dir/$stem]:-}" ]]; then
+      echo "  SKIP (name clash): $f -> $web already comes from ${stage_seen[$dir/$stem]}"
+      continue
+    fi
+    stage_seen[$dir/$stem]=$f
+    if [[ "${f,,}" != *.webp ]] || oversized "$f" "$FULL_SIZE"; then
+      encode "$f" "$FULL_SIZE" "$FULL_Q" "$web" \
+        || { stage_failed=$((stage_failed + 1)); echo "  FAILED (original kept): $f"; continue; }
+    fi
+    if mkdir -p "$dir/full" "$dir/thumbial" \
+       && cp -f -- "$web" "$dir/full/" && cp -f -- "$web" "$dir/thumbial/"; then
+      rm -f -- "$f" "$web"
+      staged=$((staged + 1)); echo "  staged: $f -> $dir/full/ + $dir/thumbial/"
+    else
+      stage_failed=$((stage_failed + 1)); echo "  FAILED copy (kept): $web"
+    fi
+  done
+done
+[ "$staged" -gt 0 ] || [ "$stage_failed" -gt 0 ] \
+  && echo "Stage 1: $staged main-folder images copied to full/ + thumbial/, $stage_failed failed"
 
 full_jobs=()
 thumb_jobs=()
@@ -175,7 +213,9 @@ done
 jobs=("${thumb_jobs[@]}" "${full_jobs[@]}")
 total=${#jobs[@]}
 if [ "$total" -eq 0 ]; then
-  echo "Nothing new to convert — everything is already WebP."; exit 0
+  echo "Nothing new to convert — everything is already WebP."
+  [ "$stage_failed" -eq 0 ] || exit 1
+  exit 0
 fi
 
 echo "Converting ${#full_jobs[@]} full-size + ${#thumb_jobs[@]} thumbnails (full q$FULL_Q, thumbs q$THUMB_Q)..."
@@ -216,4 +256,4 @@ elapsed=$(( $(date +%s) - start_ts ))
 printf 'Done in %dm%02ds: %d written, %d failed, %d originals replaced (%d MB -> WebP total written %d MB)\n' \
   $((elapsed / 60)) $((elapsed % 60)) ${#written[@]} "$failed" "$deleted" \
   $((in_bytes / 1048576)) $((out_bytes / 1048576))
-[ "$failed" -eq 0 ] || exit 1
+[ "$failed" -eq 0 ] && [ "$stage_failed" -eq 0 ] || exit 1

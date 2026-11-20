@@ -2,6 +2,9 @@
 """Apply name.md files: rename photos, update altText.ts / slideFocus.ts, archive name.md.
 
 name.md lives in a prefix dir (assets/start/, assets/portfolio/, assets/gallery/<folder>/).
+Photos are renamed where they are: in the prefix (main) dir, where new uploads go (CI
+convert-images.sh later copies them to full/ + thumbial/), or, if not there, in full/ +
+thumbial/ (renaming already published photos). start/ has no subdirs.
 Row: `old_name | new_name.webp | Alt text [| focus]` (focus only for start/, e.g. `30% 50%`).
 Blank lines and lines starting with `#` are ignored. Only files named exactly `name.md`
 are processed; archived `name_<timestamp>.md` are skipped.
@@ -17,14 +20,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_FOCUS = '50% 50%'
-THUMB_DIRS = ('thumbs', 'thumbial')
+THUMB_DIRS = ('thumbial',)
 NEW_NAME_RE = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*\.webp$')
 FOCUS_RE = re.compile(r'^\d{1,3}% \d{1,3}%$')
 
 
-def image_dirs(prefix_dir: Path) -> list[Path]:
+def image_dirs(prefix_dir: Path, old: str) -> list[Path]:
+    """Main (upload) dir if the photo is there, else full/ + thumbial/ (published photo)."""
     full = prefix_dir / 'full'
-    if not full.is_dir():
+    if (prefix_dir / old).is_file() or not full.is_dir():
         return [prefix_dir]
     return [full] + [prefix_dir / t for t in THUMB_DIRS if (prefix_dir / t).is_dir()]
 
@@ -37,7 +41,6 @@ def parse(name_md: Path, assets: Path, errors: list[str]) -> list[dict]:
     prefix_dir = name_md.parent
     prefix = prefix_dir.relative_to(assets).as_posix() + '/'
     is_start = prefix == 'start/'
-    dirs = image_dirs(prefix_dir)
     rows, seen = [], set()
     for no, line in enumerate(name_md.read_text(encoding='utf-8').splitlines(), 1):
         line = line.strip()
@@ -57,6 +60,7 @@ def parse(name_md: Path, assets: Path, errors: list[str]) -> list[dict]:
         if focus is not None and (not is_start or not FOCUS_RE.match(focus)):
             errors.append(f'{where}: focus "{focus}" allowed only for start/ as "NN% NN%"')
         target = Path(new).stem + Path(old).suffix
+        dirs = image_dirs(prefix_dir, old)
         if target in seen:
             errors.append(f'{where}: duplicate new name "{new}"')
         seen.add(target)
