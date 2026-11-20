@@ -4,15 +4,38 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
+concurrency:
+  group: notify-fe
+  cancel-in-progress: false
+
 jobs:
   dispatch:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply name.md renames
+        id: names
+        run: python3 scripts/apply_names.py assets
+
+      - name: Commit renames
+        if: steps.names.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A assets
+          git commit -m "Apply name.md renames"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: Send repository_dispatch to studio-foto-fe
         env:
           GH_TOKEN: ${{ secrets.FE_DISPATCH_TOKEN }}
         run: |
           gh api repos/kmalon/studio-foto-fe/dispatches \
             -f event_type=assets-updated \
-            -F client_payload[sha]=${{ github.sha }} \
+            -F client_payload[sha]=$(git rev-parse HEAD) \
             -F client_payload[ref]=${{ github.ref }}
