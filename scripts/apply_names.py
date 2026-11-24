@@ -6,6 +6,9 @@ Photos are renamed where they are: in the prefix (main) dir, where new uploads g
 convert-images.sh later copies them to full/ + thumbial/), or, if not there, in full/ +
 thumbial/ (renaming already published photos). start/ has no subdirs.
 Row: `old_name | new_name.webp | Alt text [| focus]` (focus only for start/, e.g. `30% 50%`).
+old_name lookup per dir: exact, else same name any case, else `<old stem>.webp` any case
+(e.g. `IMG4240.JPG` finds `IMG4240.JPG`, `img4240.jpg`, `IMG4240.webp`, `img4240.WEBP`).
+Renamed file keeps its actual extension.
 Blank lines and lines starting with `#` are ignored. Only files named exactly `name.md`
 are processed; archived `name_<timestamp>.md` are skipped.
 
@@ -25,10 +28,26 @@ NEW_NAME_RE = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*\.webp$')
 FOCUS_RE = re.compile(r'^\d{1,3}% \d{1,3}%$')
 
 
+def resolve(d: Path, old: str) -> str | list[str] | None:
+    """Actual file name in d for `old`: exact, else same name any case, else `<stem>.webp`
+    any case. Returns name, None (not found) or list of candidates (ambiguous)."""
+    if (d / old).is_file():
+        return old
+    if not d.is_dir():
+        return None
+    files = [p.name for p in d.iterdir() if p.is_file()]
+    webp = (Path(old).stem + '.webp').lower()
+    for want in (old.lower(), webp):
+        hits = sorted(f for f in files if f.lower() == want)
+        if hits:
+            return hits[0] if len(hits) == 1 else hits
+    return None
+
+
 def image_dirs(prefix_dir: Path, old: str) -> list[Path]:
     """Main (upload) dir if the photo is there, else full/ + thumbial/ (published photo)."""
     full = prefix_dir / 'full'
-    if (prefix_dir / old).is_file() or not full.is_dir():
+    if resolve(prefix_dir, old) is not None or not full.is_dir():
         return [prefix_dir]
     return [full] + [prefix_dir / t for t in THUMB_DIRS if (prefix_dir / t).is_dir()]
 
@@ -59,19 +78,27 @@ def parse(name_md: Path, assets: Path, errors: list[str]) -> list[dict]:
             errors.append(f'{where}: empty alt text')
         if focus is not None and (not is_start or not FOCUS_RE.match(focus)):
             errors.append(f'{where}: focus "{focus}" allowed only for start/ as "NN% NN%"')
-        target = Path(new).stem + Path(old).suffix
-        dirs = image_dirs(prefix_dir, old)
-        if target in seen:
+        new_stem = Path(new).stem
+        if new_stem in seen:
             errors.append(f'{where}: duplicate new name "{new}"')
-        seen.add(target)
-        for d in dirs:
-            if not (d / old).is_file():
-                errors.append(f'{where}: missing {d / old}')
-            if target != old and (d / target).exists():
+        seen.add(new_stem)
+        moves = []  # (dir, actual old name, target name)
+        for d in image_dirs(prefix_dir, old):
+            actual = resolve(d, old)
+            if actual is None:
+                errors.append(f'{where}: missing {d / old} (or {Path(old).stem}.webp, any case)')
+                continue
+            if isinstance(actual, list):
+                errors.append(f'{where}: ambiguous {d / old}: {", ".join(actual)}')
+                continue
+            target = new_stem + Path(actual).suffix
+            if target != actual and (d / target).exists():
                 errors.append(f'{where}: {d / target} already exists')
-        rows.append(dict(old=old, target=target, key_old=Path(old).stem + '.webp',
+            moves.append((d, actual, target))
+        key_old = Path(moves[0][1] if moves else old).stem + '.webp'
+        rows.append(dict(moves=moves, key_old=key_old,
                          key_new=Path(new).stem + '.webp', alt=alt, focus=focus,
-                         prefix=prefix, dirs=dirs, is_start=is_start))
+                         prefix=prefix, is_start=is_start))
     return rows
 
 
@@ -115,10 +142,10 @@ def main() -> int:
             print('name.md errors, nothing changed:\n  ' + '\n  '.join(errors), file=sys.stderr)
             return 1
         for r in rows:
-            for d in r['dirs']:
-                if r['old'] != r['target']:
-                    os.rename(d / r['old'], d / r['target'])
-            print(f"{r['prefix']}{r['old']} -> {r['target']}")
+            for d, actual, target in r['moves']:
+                if actual != target:
+                    os.rename(d / actual, d / target)
+                print(f"{d.relative_to(assets).as_posix()}/{actual} -> {target}")
         upsert(assets / 'altText.ts',
                [(r['prefix'] + r['key_old'], r['prefix'] + r['key_new'], r['alt']) for r in rows])
         start_rows = [r for r in rows if r['is_start']]

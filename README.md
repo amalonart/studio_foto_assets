@@ -65,7 +65,7 @@
 - Brak wpisu oznacza ogólny alt typu „… | zdjęcie N”, co jest złe dla SEO.
 
 ## 6. Nazwy i alt texty przez AI → `name.md` (jeden katalog)
-1. Wyślij do AI nowe zdjęcia z **jednego** głównego katalogu. Nazwy plików muszą zostać bez zmian (np. `IMG_1234.jpg` albo `IMG_1234.webp`, jeśli konwertowano lokalnie). Rozszerzenie w `name.md` musi zgadzać się z plikiem w repo.
+1. Wyślij do AI nowe zdjęcia z **jednego** głównego katalogu. Nazwy plików muszą zostać bez zmian (np. `IMG_1234.jpg` albo `IMG_1234.webp`, jeśli konwertowano lokalnie). Rozszerzenie i wielkość liter w `name.md` nie muszą się zgadzać (pkt 8).
    - galeria: nowe pliki z `gallery/<folder>/`
    - portfolio: nowe pliki z `portfolio/`
    - start: nowe pliki z `start/`
@@ -83,7 +83,7 @@
    - Nie wpisuj w nim `full/` ani `thumbial/`.
    - Galeria: nazwa folderu **dokładnie jak na dysku**. Jest `4_`, więc piszesz `4_`, a nie `04_`.
 4. Sprawdź wynik:
-   - czy stara nazwa zgadza się z plikiem znak w znak,
+   - czy stara nazwa zgadza się z plikiem (rozszerzenie i wielkość liter mogą się różnić),
    - czy nowa nazwa jest zgodna z pkt 1 (numer, małe litery, bez polskich znaków),
    - czy alt zgadza się ze zdjęciem i ma polskie znaki,
    - czy AI nie wymyśliło imion ani miejsc.
@@ -143,6 +143,7 @@ KONTROLA: każdy wiersz ma dokładnie 2 znaki "|", nowe nazwy idą kolejno od ST
 - Wiersz: `stara-nazwa | nowa-nazwa.webp | Alt text`. Dla start można dodać 4. kolumnę z kadrem: `| 30% 50%`.
   - Puste linie i linie zaczynające się od `#` są pomijane.
   - Stara nazwa może mieć dowolne rozszerzenie (np. `IMG_1.jpg` → `15-opis.jpg`); klucz w `altText.ts` zawsze ma `.webp`.
+  - Szukanie starej nazwy (bez względu na wielkość liter): najpierw dokładnie taka nazwa, potem ta sama nazwa z `.webp`. Np. `IMG4240.JPG` znajdzie `IMG4240.JPG`, `img4240.jpg`, a jeśli ich nie ma, `IMG4240.webp` / `img4240.webp`. Plik po zmianie zachowuje swoje prawdziwe rozszerzenie.
 - Po wrzuceniu do `main` GitHub Action (`.github/workflows/notify-fe.yml`) uruchamia `scripts/apply_names.py`:
   1. sprawdza wszystkie wiersze; przy jakimkolwiek błędzie (brak pliku, zajęta nazwa, zła nazwa, pusty alt) nic nie zmienia i kończy się błędem, a FE nie jest powiadamiane,
   2. zmienia nazwę w głównym katalogu (nowe zdjęcia); jeśli pliku tam nie ma, w `full/` **i** `thumbial/` (już opublikowane zdjęcie); start: w `start/`,
