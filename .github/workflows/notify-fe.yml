@@ -27,10 +27,10 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq imagemagick webp libheif1
 
-      - name: Resize images to WebP
+      - name: Distribute main-folder uploads to full/ + thumbial/ and resize to WebP
         run: bash scripts/convert-images.sh assets
 
-      - name: Commit renames and resized images
+      - name: Commit renames and distributed/resized images
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
