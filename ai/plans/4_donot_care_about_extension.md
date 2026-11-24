@@ -1,0 +1,2 @@
+As DevOps Enginieer change pipelint:
+- During Re-naming state images should be taken based on names as are or with the same name but with exension webp. Thus, if name.md file contains: "IMG4240.JPG | 52-kobieta-brodaty-mezczyzna-wsrod-bluszczu.webp | Kobieta  wsrod zielonych lisci bluszczu w sloncu" it should be found photo with name IMG4240.JPG, or if it doesn't exist, then IMG4240.webp. Photo name also should be case insensitive, so img4240.webp works too.
