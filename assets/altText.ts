@@ -250,8 +250,6 @@ const altText: Record<string, string> = {
     'gallery/4_sesja_slubna_lazienki_krolewskie/39-para-mloda-na-stopniach-pod-oknem-tren-sukni-na-posadzce.webp': 'Para młoda na stopniach pod oknem, tren sukni na posadzce',
     'gallery/4_sesja_slubna_lazienki_krolewskie/40-para-mloda-przy-scianie-oranzerii-w-tle-jesienny-park.webp': 'Para młoda przy ścianie oranżerii, w tle jesienny park',
     'gallery/2_spotkanie_z_artystka_paula_smyk/52-kobieta-brodaty-mezczyzna-wsrod-bluszczu.webp': 'Kobieta i brodaty mężczyzna wśród zielonych liści bluszczu w słońcu',
-    'gallery/5_sesja_plenerowa_w_parku/01-kobieta-i-mezczyzna-odbici-w-szklanej-scianie.webp': 'Kobieta w niebieskiej sukience i brodaty mężczyzna odbici w szklanej ścianie na tle drzew',
-    'gallery/5_sesja_plenerowa_w_parku/02-para-plecami-do-siebie-na-pniu-w-parku.webp': 'Para trzymająca się za ręce, siedząca plecami do siebie na pniu w słonecznym parku',
 }
 
 export default altText
